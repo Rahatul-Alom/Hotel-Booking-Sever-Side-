@@ -1,14 +1,23 @@
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken')
+const cookieParser = require('cookie-parser')
 require('dotenv').config()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
 
 // middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+  // 'http://localhost:5173',
+  'https://cars-doctor-1b006.web.app',
+  'https://cars-doctor-1b006.firebaseapp.com'
+],
+  credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser())
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.cep75go.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -38,8 +47,14 @@ async function run() {
       console.log('user for token', user)
       res.send(user)
 
-      const token = jwt.sign(uesr, 'secret', {expiresIn: '1hr'} )
-      res.send(token)
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1hr'} )
+
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite:'none'
+       })
+       .send({success: true});
     })
 
 
