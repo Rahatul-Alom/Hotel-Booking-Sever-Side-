@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken')
 require('dotenv').config()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
@@ -20,6 +21,10 @@ const client = new MongoClient(uri, {
   }
 });
 
+// middleware
+
+
+
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
@@ -27,6 +32,19 @@ async function run() {
 
     const roomsCollection = client.db('roomDB').collection('rooms')
 
+    // auth related api
+    app.post('/jwt', async(req, res)=>{
+      const user = req.body;
+      console.log('user for token', user)
+      res.send(user)
+
+      const token = jwt.sign(uesr, 'secret', {expiresIn: '1hr'} )
+      res.send(token)
+    })
+
+
+
+    // rooms api
     app.get('/rooms', async (req, res)=>{
       const cusor = roomsCollection.find();
       const result = await cusor.toArray();
