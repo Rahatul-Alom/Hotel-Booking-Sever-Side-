@@ -10,9 +10,7 @@ const port = process.env.PORT || 5000;
 // middleware
 app.use(cors({
   origin: [
-  // 'http://localhost:5173',
-  'https://cars-doctor-1b006.web.app',
-  'https://cars-doctor-1b006.firebaseapp.com'
+  'http://localhost:5173',
 ],
   credentials: true
 }));
@@ -45,7 +43,7 @@ async function run() {
     app.post('/jwt', async(req, res)=>{
       const user = req.body;
       console.log('user for token', user)
-      res.send(user)
+       res.send(user)
 
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1hr'} )
 
