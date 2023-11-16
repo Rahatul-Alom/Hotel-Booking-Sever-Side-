@@ -28,7 +28,29 @@ const client = new MongoClient(uri, {
   }
 });
 
-// middleware
+// middlewares
+const logger = async(req, res, next)=>{
+  console.log('called:', req.host, req.originalUrl)
+  next()
+}
+
+const verifyToken = async (req, res, next) => {
+  const token = req.cookies?.token;
+  if (!token) {
+      return res.status(401).send({ message: 'unauthorized access' })
+  }
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    // error
+      if (err) {
+          console.log(err)
+          return res.status(401).send({ message: 'unauthorized access' })
+      }
+      // if token is valid then it would be decoded
+      console.log('value in the token', decoded)
+      req.user = decoded;
+      next();
+  })
+}
 
 
 
@@ -41,9 +63,8 @@ async function run() {
 
     // auth related api
     app.post('/jwt', async(req, res)=>{
-      const user = req.body;
+      const user = req.body
       console.log('user for token', user)
-       res.send(user)
 
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1hr'} )
 
