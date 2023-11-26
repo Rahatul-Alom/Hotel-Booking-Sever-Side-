@@ -61,6 +61,7 @@ async function run() {
 
     const roomsCollection = client.db('roomDB').collection('rooms')
     const bookingCollection = client.db('roomDB').collection('bookings')
+    const reviewCollection = client.db('roomDB').collection('review')
 
     // auth related api
     app.post('/jwt', async(req, res)=>{
@@ -75,12 +76,32 @@ async function run() {
        .send({success: true});
     })
 
+    app.post('/logout', async(req, res)=>{
+      const user = req.body;
+      console.log('logging out', user) 
+      res.clearCookie('token', { maxAge: 0 }).send({ success: true })
+    })
 
   // rooms api
     app.get('/rooms', async (req, res)=>{
-      const cursor = roomsCollection.find();
+
+      let queryObj = {}
+      
+      const price = req.query.price;
+      
+      if(price){
+        queryObj.price = price
+      }
+
+
+      const cursor = roomsCollection.find(queryObj);
       const result = await cursor.toArray();
-      res.send(result)
+
+      // const total = await roomsCollection.countDocuments()
+      res.send(
+        result
+      
+      )
     })
 
     app.get('/rooms/:id', async (req, res)=>{
@@ -108,7 +129,7 @@ async function run() {
       res.send(result);
     })
 
-    app.get('bookings/:id', async (req, res)=>{
+    app.get('/bookings/:id', async (req, res)=>{
       const id = req.params.id;
       const query ={_id: new ObjectId(id)}
       const result = await bookingCollection.findOne(query)
@@ -122,11 +143,57 @@ async function run() {
         res.send(result)
     })
 
+    app.patch('/bookings/:id', async(req, res)=>{
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)}
+      const updatedDate = req.body
+      const options = {upsert: true};
+      console.log(updatedDate)
+      const updateDoc = {
+        $set:{
+          date:updatedDate.date
+        }
+      }
+      const result = await bookingCollection.updateOne(filter, updateDoc,options)
+      res.send(result)
+    })
+
     app.delete('/bookings/:id', async(req, res)=>{
       const id = req.params.id;
       const query = {_id: new ObjectId(id)}
       const result = await bookingCollection.deleteOne(query)
       res.send(result)
+    })
+
+
+    // review api
+
+    app.get('/reviews', async (req, res) => {
+      const cursor = reviewCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+    
+    app.get('/reviews/:id', async (req, res) => {
+      const id = req.params.id;
+      console.log(id,id.length)
+      let query = {}
+      if(id.length == 24){
+       query = { roomID:(id) };
+      const result = await reviewCollection.findOne(query);
+      console.log(result)
+      res.send(result)
+      }
+      else
+      res.send({});
+    });
+
+
+    app.post('/reviews/:id', async(req, res)=>{
+      const review = req.body;
+      const result = await reviewCollection.insertOne(review)
+      res.send(result)
+
     })
 
     
