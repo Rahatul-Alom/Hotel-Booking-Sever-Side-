@@ -11,6 +11,8 @@ const port = process.env.PORT || 5000;
 app.use(cors({
   origin: [
   'http://localhost:5173',
+  'https://hotel-booking-23f55.web.app',
+  'https://hotel-booking-23f55.firebaseapp.com'
 ],
   credentials: true
 }));
@@ -115,7 +117,7 @@ async function run() {
 
   // booking api
 
-    app.get('/bookings', async(req, res)=>{
+    app.get('/bookings',verifyToken,logger, async(req, res)=>{
       console.log(req.query.email);
       console.log('token owner info', req.user)
       // if(req.user.email !== req.query.email){
@@ -180,7 +182,7 @@ async function run() {
       let query = {}
       if(id.length == 24){
        query = { roomID:(id) };
-      const result = await reviewCollection.findOne(query);
+      const result = await reviewCollection.find(query).toArray();
       console.log(result)
       res.send(result)
       }
